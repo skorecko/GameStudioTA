@@ -53,6 +53,10 @@ public class Field {
         generate();
     }
 
+    public Tile[][] getTiles(){
+        return tiles;
+    }
+
     public int getRowCount() {
         return rowCount;
     }
@@ -222,7 +226,11 @@ public class Field {
 
 
     public int getScore() {
-        return rowCount * columnCount * 10 - getPlayTimeInSeconds();
+        if (this.state==GameState.SOLVED){
+            return rowCount * columnCount * 10 - getPlayTimeInSeconds();
+        }else{
+            return 0;
+        }
     }
 
 

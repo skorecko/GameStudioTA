@@ -17,6 +17,61 @@
 <h2>Minesweeper</h2>
 
 <div class="minesControl">
+    <span th:text="${gameStatus}"></span>
+    <a th:if="${marking}"  class="abutton" href="/minesweeper/mark">Na otváranie.</a>
+    <a th:if="not ${@minesweeperController.marking}" class="abutton" href="/minesweeper/mark">Na označovanie.</a>
+
+
+    <a  class="abutton" href="/minesweeper/new">Nová hra</a>
+
+</div>
+
+<section>
+    <table class='minefield'>
+        <tr th:each="row: ${minesweeperField}">
+            <td th:each="tile: ${row}"
+                th:attr="class=${@minesweeperController.getTileClass(tile)}">
+                <a th:if="${isPlaying}" th:attr="href='/minesweeper?row='+${rowStat.index}+'&column='+${tileStat.index}">
+                    <span th:text="${@minesweeperController.getTileText(tile)}"></span>
+                </a>
+
+                <span th:if="not ${isPlaying}" th:text="${@minesweeperController.getTileText(tile)}"></span>
+
+            </td>
+        </tr>
+    </table>
+</section>
+
+
+<section>
+    <h3>Najlepšie skóre</h3>
+    <table class="scores">
+        <tr>
+            <th>Poradie</th>
+            <th>Meno</th>
+            <th>Body</th>
+            <th>Dátum a čas hry</th>
+        </tr>
+        <tr th:each="score: ${bestScores}">
+            <td th:text="${scoreStat.index+1}"></td>
+            <td th:text="${score.username}"></td>
+            <td th:text="${score.points}"></td>
+            <td th:text="${score.playedOn}"></td>
+        </tr>
+    </table>
+</section>
+
+
+</body>
+</html>
+
+<!--Stav k 22/08/19-->
+<!--
+<body>
+
+<h2>Minesweeper</h2>
+
+<div class="minesControl">
     <span th:if="${@minesweeperController.marking}">
         Prave oznacujes.
         <a  class="abutton" href="/minesweeper/mark">Zmen na otvaranie.</a>
@@ -32,13 +87,13 @@
 
 </div>
 
-<div th:utext="${@minesweeperController.fieldAsHtml}">
+<div th:utext="${@minesweeperController.fieldAsHtml}"> </div>
 
 
-<!--<div th:text="${1+2}"></div>-->
-<!--<div th:text="${@minesweeperController.getCurrTime()}"></div>-->
-<!--<div th:text="${@minesweeperController.currTime}"></div>-->
+&lt;!&ndash;<div th:text="${1+2}"></div>&ndash;&gt;
+&lt;!&ndash;<div th:text="${@minesweeperController.getCurrTime()}"></div>&ndash;&gt;
+&lt;!&ndash;<div th:text="${@minesweeperController.currTime}"></div>&ndash;&gt;
 
 
 </body>
-</html>
+-->
