@@ -41,10 +41,13 @@ public class MinesweeperController {
 
         if(row != null && column != null){
 
-            if(marking){
-                this.field.markTile(row,column);
-            }else{
-                this.field.openTile(row,column);
+            if(this.field.getState()==GameState.PLAYING){
+                if(marking){
+                    this.field.markTile(row,column);
+                }else{
+                    this.field.openTile(row,column);
+                }
+
             }
 
 
@@ -62,7 +65,9 @@ public class MinesweeperController {
 
     @RequestMapping("/mark")
     public  String changeMarking(Model model){
-        this.marking = !this.marking;
+        if(this.field.getState()==GameState.PLAYING){
+            this.marking = !this.marking;
+        }
         prepareModel(model);
         return "minesweeper";
     }

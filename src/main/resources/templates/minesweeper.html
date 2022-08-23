@@ -18,8 +18,8 @@
 
 <div class="minesControl">
     <span th:text="${gameStatus}"></span>
-    <a th:if="${marking}"  class="abutton" href="/minesweeper/mark">Na otváranie.</a>
-    <a th:if="not ${@minesweeperController.marking}" class="abutton" href="/minesweeper/mark">Na označovanie.</a>
+    <a th:if="${marking and isPlaying}"  class="abutton" href="/minesweeper/mark">Na otváranie.</a>
+    <a th:if=" ${not marking and isPlaying}" class="abutton" href="/minesweeper/mark">Na označovanie.</a>
 
 
     <a  class="abutton" href="/minesweeper/new">Nová hra</a>
