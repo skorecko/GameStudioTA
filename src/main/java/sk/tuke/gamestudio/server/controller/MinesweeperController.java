@@ -23,8 +23,10 @@ public class MinesweeperController {
 
     @Autowired
     private ScoreService scoreService;
-    private Field field = new Field(9,9,10);
 
+    @Autowired
+    private UserController userController;
+    private Field field;
     /**
      * false if opening tiles, true if marking tiles
      */
@@ -38,6 +40,10 @@ public class MinesweeperController {
 
     @RequestMapping
     public String minesweeper(@RequestParam(required = false) Integer row, @RequestParam(required = false) Integer column, Model model){
+
+        if(field==null){
+            initField();
+        }
 
         if(row != null && column != null){
 
@@ -53,14 +59,22 @@ public class MinesweeperController {
 
             if(this.field.getState()!= GameState.PLAYING && this.isPlaying==true){ //I just won/lose
                 this.isPlaying=false;
-                Score newScore = new Score("minesweeper", "Anonym", this.field.getScore(), new Date());
-                scoreService.addScore(newScore);
+
+                if(userController.isLogged()){
+                    Score newScore = new Score("minesweeper", userController.getLoggedUser(), this.field.getScore(), new Date());
+                    scoreService.addScore(newScore);
+                }
+
             }
 
         }
 
         prepareModel(model);
         return "minesweeper";
+    }
+
+    private void initField(){
+        this.field = new Field(9,9,1);
     }
 
     @RequestMapping("/mark")
@@ -74,7 +88,7 @@ public class MinesweeperController {
 
     @RequestMapping("/new")
     public  String newGame(Model model){
-        this.field = new Field(9,9,10);
+        initField();
         this.isPlaying = true;
         this.marking = false;
         prepareModel(model);
