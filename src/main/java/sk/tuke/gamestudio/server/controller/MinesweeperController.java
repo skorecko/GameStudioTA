@@ -66,6 +66,13 @@ public class MinesweeperController {
         return "minesweeper";
     }
 
+    @RequestMapping("/asynch")
+    public String loadInAsynchMode(Model model){
+        startOrUpdateGame(null,null);
+        prepareModel(model);
+        return "minesweeperAsynch";
+    }
+
     public String getCurrTime(){
         return new Date().toString();
     }

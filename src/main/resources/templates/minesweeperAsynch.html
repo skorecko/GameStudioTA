@@ -1,0 +1,115 @@
+<!DOCTYPE HTML>
+<html
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout/layoutGamestudio.html}"
+        lang="sk">
+<head>
+<!--    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Stefan Korecko" />
+    <link rel="stylesheet"
+          href="/css/mines.css"
+          media="screen" />-->
+
+
+    <title>Gamestudio - Minesweeper</title>
+</head>
+
+<body>
+
+<main layout:fragment="content">
+
+    <!--/*@thymesVar id="minesweeperController" type="sk.tuke.gamestudio.server.controller.MinesweeperController"*/-->
+
+    <h2>Minesweeper</h2>
+
+    <div class="minesControl">
+        <span id="gameStatus"></span>
+
+        <button id="btToOpen" class="abutton">Na otváranie</button>
+        <button id="btToMark" class="abutton" >Na označovanie</button>
+        <button id="btNewGame" class="abutton">Nová hra</button>
+    </div>
+
+    <section id="minesweeperField"></section>
+
+
+    <section>
+        <h3>Najlepšie skóre</h3>
+        <table class="scores">
+            <thead>
+            <tr>
+                <th>Poradie</th>
+                <th>Meno</th>
+                <th>Body</th>
+                <th>Dátum a čas hry</th>
+            </tr>
+            </thead>
+            <tbody id="scoresTableBody">
+            </tbody>
+        </table>
+    </section>
+
+    <script type="text/javascript">
+
+    const getJsonUrl ="/api/score/minesweeper";
+
+            fetch(getJsonUrl)  //there may be a second parameter, an object wih options, but we do not need it now.
+                .then(response =>{      //fetch promise fullfilled (operation completed successfully)
+                    if(response.ok){    //successful execution includes an error response from the server. So we have to check the return status of the response here.
+                        return response.json(); //we return a new promise with the response data as a js object, constructed from the JSON string in the response
+                    }else{ //if we get server error
+                        return Promise.reject(new Error(`Best scores acquisition failed. Server answered with ${response.status}: ${response.statusText}.`)); //we return a rejected promise to be catched later
+                    }
+                })
+                .then(bestScoresData => { //here we process the returned response data in JSON ...
+                    console.log(bestScoresData);
+                })
+                .catch (error => { ////here we process all the failed promises
+                    errorMessage="Nepodarilo sa získať údaje o najlepších skóre. Podrobnosti: " + error;
+                    console.log(errorMessage);
+                    //document.getElementById(fieldElmId).innerHTML =error;
+                });
+
+</script>
+
+
+</main>
+
+
+</body>
+</html>
+
+<!--Stav k 22/08/19-->
+<!--
+<body>
+
+<h2>Minesweeper</h2>
+
+<div class="minesControl">
+    <span th:if="${@minesweeperController.marking}">
+        Prave oznacujes.
+        <a  class="abutton" href="/minesweeper/mark">Zmen na otvaranie.</a>
+    </span>
+
+    <span th:if="not ${@minesweeperController.marking}">
+        Prave otvaras.
+        <a  class="abutton" href="/minesweeper/mark">Zmen na oznacovanie.</a>
+    </span>
+
+
+    <a  class="abutton" href="/minesweeper/new">Nova hra</a>
+
+</div>
+
+<div th:utext="${@minesweeperController.fieldAsHtml}"> </div>
+
+
+&lt;!&ndash;<div th:text="${1+2}"></div>&ndash;&gt;
+&lt;!&ndash;<div th:text="${@minesweeperController.getCurrTime()}"></div>&ndash;&gt;
+&lt;!&ndash;<div th:text="${@minesweeperController.currTime}"></div>&ndash;&gt;
+
+
+</body>
+-->

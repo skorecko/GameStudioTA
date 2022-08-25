@@ -1,7 +1,9 @@
 package sk.tuke.gamestudio.server.webservice;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.WebApplicationContext;
 import sk.tuke.gamestudio.entity.Score;
 import sk.tuke.gamestudio.service.ScoreService;
 
