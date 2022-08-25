@@ -20,6 +20,8 @@
 
 <main layout:fragment="content">
 
+    <!--/*@thymesVar id="minesweeperController" type="sk.tuke.gamestudio.server.controller.MinesweeperController"*/-->
+
     <h2>Minesweeper</h2>
 
     <div class="minesControl">
@@ -52,18 +54,22 @@
     <section>
         <h3>Najlepšie skóre</h3>
         <table class="scores">
+            <thead>
             <tr>
                 <th>Poradie</th>
                 <th>Meno</th>
                 <th>Body</th>
                 <th>Dátum a čas hry</th>
             </tr>
+            </thead>
+            <tbody>
             <tr th:each="score: ${bestScores}">
                 <td th:text="${scoreStat.index+1}"></td>
                 <td th:text="${score.username}"></td>
                 <td th:text="${score.points}"></td>
                 <td th:text="${score.playedOn}"></td>
             </tr>
+            </tbody>
         </table>
     </section>
 </main>

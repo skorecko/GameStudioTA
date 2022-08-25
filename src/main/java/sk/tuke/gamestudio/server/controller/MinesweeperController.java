@@ -26,7 +26,12 @@ public class MinesweeperController {
 
     @Autowired
     private UserController userController;
+
+    /**
+     * game field
+     */
     private Field field;
+
     /**
      * false if opening tiles, true if marking tiles
      */
@@ -39,58 +44,24 @@ public class MinesweeperController {
 
 
     @RequestMapping
-    public String minesweeper(@RequestParam(required = false) Integer row, @RequestParam(required = false) Integer column, Model model){
+    public String processUserInput(@RequestParam(required = false) Integer row, @RequestParam(required = false) Integer column, Model model){
+        //method renamed from minesweeper
 
-        if(field==null){
-            initField();
-        }
-
-        if(row != null && column != null){
-
-            if(this.field.getState()==GameState.PLAYING){
-                if(marking){
-                    this.field.markTile(row,column);
-                }else{
-                    this.field.openTile(row,column);
-                }
-
-            }
-
-
-            if(this.field.getState()!= GameState.PLAYING && this.isPlaying==true){ //I just won/lose
-                this.isPlaying=false;
-
-                if(userController.isLogged()){
-                    Score newScore = new Score("minesweeper", userController.getLoggedUser(), this.field.getScore(), new Date());
-                    scoreService.addScore(newScore);
-                }
-
-            }
-
-        }
-
+        startOrUpdateGame(row,column);
         prepareModel(model);
         return "minesweeper";
     }
 
-    private void initField(){
-        this.field = new Field(9,9,1);
-    }
-
     @RequestMapping("/mark")
     public  String changeMarking(Model model){
-        if(this.field.getState()==GameState.PLAYING){
-            this.marking = !this.marking;
-        }
+        switchMode();
         prepareModel(model);
         return "minesweeper";
     }
 
     @RequestMapping("/new")
     public  String newGame(Model model){
-        initField();
-        this.isPlaying = true;
-        this.marking = false;
+        startNewGame();
         prepareModel(model);
         return "minesweeper";
     }
@@ -164,10 +135,10 @@ public class MinesweeperController {
     }
 
     /**
-     * Gets the HTML class of the <td> element representing the Tile tile
+     * Gets the HTML class of the <code>td</code> element representing the tile
      * Now public as it is called from the template
-     * @param tile - the Tile object the class is assigned to
-     * @return String with the HTML class of the <td> element representing the Tile tile
+     * @param tile the Tile object the class is assigned to
+     * @return String with the HTML class of the <code>td</code> element representing the Tile tile
      */
     public String getTileClass(Tile tile) {
         switch (tile.getState()) {
@@ -182,6 +153,60 @@ public class MinesweeperController {
                 return "marked";
             default:
                 throw new RuntimeException("Unexpected tile state");
+        }
+    }
+
+    /**
+     * Initiates the game field and other variables to the state at the start of a new game
+     */
+    private void startNewGame(){
+        this.field = new Field(9,9,3);
+        this.isPlaying = true;
+        this.marking = false;
+    }
+
+    /**
+     * Updates the game field and other variables according to the move of the user
+     * Also adds the score to the score table if the game just ended.
+     * If the game did not start yet, starts the game.
+     * @param row row of the tile on which the user clicked
+     * @param column column of the tile on which the user clicked
+     */
+    private void startOrUpdateGame(Integer row, Integer column){
+
+        if(field==null){
+            startNewGame();
+        }
+
+        if(row != null && column != null){
+
+            if(this.marking){
+                this.field.markTile(row,column);
+            }else{
+                this.field.openTile(row,column);
+            }
+
+
+            if(this.field.getState()!= GameState.PLAYING && this.isPlaying==true){ //I just won/lose
+                this.isPlaying=false;
+
+
+                if(userController.isLogged()){
+                    Score newScore = new Score("minesweeper", userController.getLoggedUser(), this.field.getScore(), new Date());
+                    scoreService.addScore(newScore);
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Switches the game mode (the <code>marking</code> property) between opening and marking the tiles.
+     * Applies only when the game is played.
+     */
+    private void switchMode(){
+        if(this.field.getState()==GameState.PLAYING){
+            this.marking = !this.marking;
         }
     }
 
@@ -210,7 +235,4 @@ public class MinesweeperController {
         model.addAttribute("gameStatus",gameStatus);
         model.addAttribute("minesweeperField",this.field.getTiles());
         model.addAttribute("bestScores",scoreService.getBestScores("minesweeper"));    }
-
-
-
 }
