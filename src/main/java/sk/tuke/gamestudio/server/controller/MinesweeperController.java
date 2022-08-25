@@ -2,10 +2,13 @@ package sk.tuke.gamestudio.server.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.WebApplicationContext;
 import sk.tuke.gamestudio.entity.Score;
 import sk.tuke.gamestudio.minesweeper.core.Clue;
@@ -72,6 +75,34 @@ public class MinesweeperController {
         prepareModel(model);
         return "minesweeperAsynch";
     }
+
+    @RequestMapping(value="/json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Field processUserInputJson(@RequestParam(required = false) Integer row, @RequestParam(required = false) Integer column){
+        boolean justFinished = startOrUpdateGame(row,column);
+        this.field.setJustFinished(justFinished);
+        this.field.setMarking(marking);
+        return this.field;
+    }
+
+    @RequestMapping(value="/jsonmark", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public  Field changeMarkingJson(){
+        switchMode();
+        this.field.setJustFinished(false);
+        this.field.setMarking(marking);
+        return this.field;
+    }
+
+    @RequestMapping(value="/jsonnew", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public  Field newGameJson(){
+        startNewGame();
+        this.field.setJustFinished(false);
+        this.field.setMarking(marking);
+        return this.field;
+    }
+
 
     public String getCurrTime(){
         return new Date().toString();
@@ -179,8 +210,8 @@ public class MinesweeperController {
      * @param row row of the tile on which the user clicked
      * @param column column of the tile on which the user clicked
      */
-    private void startOrUpdateGame(Integer row, Integer column){
-
+    private boolean startOrUpdateGame(Integer row, Integer column){
+        boolean justFinished=false;
         if(field==null){
             startNewGame();
         }
@@ -197,6 +228,8 @@ public class MinesweeperController {
             if(this.field.getState()!= GameState.PLAYING && this.isPlaying==true){ //I just won/lose
                 this.isPlaying=false;
 
+                justFinished=true;
+
 
                 if(userController.isLogged()){
                     Score newScore = new Score("minesweeper", userController.getLoggedUser(), this.field.getScore(), new Date());
@@ -205,6 +238,7 @@ public class MinesweeperController {
                 }
             }
         }
+        return justFinished;
     }
 
     /**
