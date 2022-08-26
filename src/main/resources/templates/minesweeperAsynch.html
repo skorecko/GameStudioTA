@@ -26,8 +26,8 @@
     <div class="minesControl">
         <span id="gameStatus"></span>
 
-        <button type="button" id="btToOpenOrMark" class="abutton">Na otváranie</button>
-        <button type="button" id="btNewGame" class="abutton">Nová hra</button>
+        <button type="button" id="btToOpenOrMark" class="abutton" onclick="processModeChangeClick()">Na otváranie</button>
+        <button type="button" id="btNewGame" class="abutton" onclick="processNewGameClick()">Nová hra</button>
     </div>
 
     <section id="minesweeperField"></section>
@@ -65,6 +65,25 @@
 
     fetchGameFieldAndRenderAll("/minesweeper/json",viewElements);
 
+
+    function processTileClick(row,col){
+        fetchGameFieldAndRenderAll(
+            `/minesweeper/json?row=${row}&column=${col}`,
+            viewElements);
+    }
+
+    function processNewGameClick(){
+        fetchGameFieldAndRenderAll(
+            `/minesweeper/jsonnew`,
+            viewElements);
+    }
+
+    function processModeChangeClick(){
+        fetchGameFieldAndRenderAll(
+            `/minesweeper/jsonmark`,
+            viewElements);
+    }
+
     function fetchAndRenderBestScores(getJsonUrl,viewElements) {
 
         fetch(getJsonUrl)  //there may be a second parameter, an object wih options, but we do not need it now.
@@ -95,7 +114,29 @@
                 }
             })
             .then(gameFieldData => { //here we process the returned response data in JSON ...
+
+
+                const newStatusMessage=getGameStatusMessage(gameFieldData);
+                if(viewElements.gameStatus.innerHTML != newStatusMessage){
+                    viewElements.gameStatus.innerHTML=newStatusMessage;
+                }
+
+                let newBtLabel="Na označovanie";
+                if(gameFieldData.marking){
+                    newBtLabel="Na otváranie";
+                }
+                if(viewElements.btToOpenOrMark.innerHTML!=newBtLabel){
+                    viewElements.btToOpenOrMark.innerHTML=newBtLabel;
+                }
+
                 renderGameField(gameFieldData, viewElements);
+
+                if(gameFieldData.justFinished){
+                    fetchAndRenderBestScores("/api/score/minesweeper",viewElements);
+                }
+
+
+
             })
             .catch(error => { ////here we process all the failed promises
                 errorMessage = "Nepodarilo sa získať  alebo vykresliť herné pole. Podrobnosti: " + error;
@@ -133,8 +174,16 @@
             html2Render+=" <tr>\n";
 
             for(let col=0;col<gameFieldData.columnCount;col++){
+
+                let onClickHandling="";
+
+                if(gameFieldData.state=="PLAYING" && gameFieldData.tiles[row][col].state!="OPEN"){
+                    onClickHandling=
+                        `onclick='processTileClick(${row},${col})'`;
+                }
+
                 html2Render+=
-                    `<td class='${getTileClass(gameFieldData.tiles[row][col])}'>
+                    `<td class='${getTileClass(gameFieldData.tiles[row][col])}' ${onClickHandling}>
                         <span>
                         ${getTileText(gameFieldData.tiles[row][col])}
                         </span>
@@ -166,7 +215,7 @@
                 return "-";
             case "MARKED":
                 return "M";
-            case OPEN:
+            case "OPEN":
                 if (tile.value!=undefined) {
                     return ""+tile.value;
                 } else {
@@ -198,6 +247,24 @@
             default:
                 return "unknown";
         }
+    }
+
+    function getGameStatusMessage(gameFieldData) {
+        let gameStatus = "";
+        if (gameFieldData.state == "FAILED") {
+            gameStatus = "Prehral si";
+        } else if (gameFieldData.state == "SOLVED") {
+            gameStatus = "Vyhral si (skóre: " + gameFieldData.score + ")";
+        } else {
+            gameStatus = "Hraješ a ";
+            if (gameFieldData.marking) {
+                gameStatus += "označuješ";
+            } else {
+                gameStatus += "otváraš";
+            }
+        }
+
+        return gameStatus;
     }
 
     </script>
