@@ -230,7 +230,7 @@ public class MinesweeperController {
                 justFinished=true;
 
 
-                if(userController.isLogged()){
+                if(userController.isLogged() && this.field.getState()== GameState.SOLVED){
                     Score newScore = new Score("minesweeper", userController.getLoggedUser(), this.field.getScore(), new Date());
                     scoreService.addScore(newScore);
 
