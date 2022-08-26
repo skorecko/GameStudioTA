@@ -26,9 +26,8 @@
     <div class="minesControl">
         <span id="gameStatus"></span>
 
-        <button id="btToOpen" class="abutton">Na otváranie</button>
-        <button id="btToMark" class="abutton" >Na označovanie</button>
-        <button id="btNewGame" class="abutton">Nová hra</button>
+        <button type="button" id="btToOpenOrMark" class="abutton">Na otváranie</button>
+        <button type="button" id="btNewGame" class="abutton">Nová hra</button>
     </div>
 
     <section id="minesweeperField"></section>
@@ -52,12 +51,21 @@
 
     <script type="text/javascript">
 
-    const getJsonUrl ="/api/score/minesweeper";
-    const tableBodyElmId="scoresTableBody";
 
-    fetchAndRenderBestScores(getJsonUrl,tableBodyElmId);
 
-    function fetchAndRenderBestScores(getJsonUrl,tableBodyElmId) {
+
+    const viewElements = {
+        minesweeperField: document.getElementById("minesweeperField"),
+        scoresTableBody:  document.getElementById("scoresTableBody"),
+        btToOpenOrMark:   document.getElementById("btToOpenOrMark"),
+        gameStatus:       document.getElementById("gameStatus")
+    }
+
+    fetchAndRenderBestScores("/api/score/minesweeper",viewElements);
+
+    fetchGameFieldAndRenderAll("/minesweeper/json",viewElements);
+
+    function fetchAndRenderBestScores(getJsonUrl,viewElements) {
 
         fetch(getJsonUrl)  //there may be a second parameter, an object wih options, but we do not need it now.
             .then(response => {      //fetch promise fullfilled (operation completed successfully)
@@ -68,16 +76,35 @@
                 }
             })
             .then(bestScoresData => { //here we process the returned response data in JSON ...
-                renderBestScores(bestScoresData, tableBodyElmId);
+                renderBestScores(bestScoresData, viewElements);
             })
             .catch(error => { ////here we process all the failed promises
-                errorMessage = "Nepodarilo sa získať údaje o najlepších skóre. Podrobnosti: " + error;
-                console.log(errorMessage);
-                //document.getElementById(fieldElmId).innerHTML =error;
+                errorMessage = "Nepodarilo sa získať alebo vykresliť údaje o najlepších skóre. Podrobnosti: " + error;
+                viewElements.scoresTableBody.innerHTML =errorMessage;
             });
     }
 
-    function renderBestScores(bestScoresData, tableBodyElmId) {
+    function fetchGameFieldAndRenderAll(getJsonUrl,viewElements) {
+
+        fetch(getJsonUrl)  //there may be a second parameter, an object wih options, but we do not need it now.
+            .then(response => {      //fetch promise fullfilled (operation completed successfully)
+                if (response.ok) {    //successful execution includes an error response from the server. So we have to check the return status of the response here.
+                    return response.json(); //we return a new promise with the response data as a js object, constructed from the JSON string in the response
+                } else { //if we get server error
+                    return Promise.reject(new Error(`Game field acquisition failed. Server answered with ${response.status}: ${response.statusText}.`)); //we return a rejected promise to be catched later
+                }
+            })
+            .then(gameFieldData => { //here we process the returned response data in JSON ...
+                renderGameField(gameFieldData, viewElements);
+            })
+            .catch(error => { ////here we process all the failed promises
+                errorMessage = "Nepodarilo sa získať  alebo vykresliť herné pole. Podrobnosti: " + error;
+                viewElements.minesweeperField.innerHTML =errorMessage;
+            });
+    }
+
+
+    function renderBestScores(bestScoresData, viewElements) {
 
         const rowCount = bestScoresData.length;
 
@@ -93,9 +120,85 @@
                  </tr>
                 `;
         }
-        document.getElementById(tableBodyElmId).innerHTML=html2Render;
+        viewElements.scoresTableBody.innerHTML=html2Render;
     }
 
+    function renderGameField(gameFieldData, viewElements){
+
+
+        let html2Render="<table class='minefield'>\n";
+
+        for(let row=0;row<gameFieldData.rowCount;row++){
+
+            html2Render+=" <tr>\n";
+
+            for(let col=0;col<gameFieldData.columnCount;col++){
+                html2Render+=
+                    `<td class='${getTileClass(gameFieldData.tiles[row][col])}'>
+                        <span>
+                        ${getTileText(gameFieldData.tiles[row][col])}
+                        </span>
+                     </td>`;
+            }
+
+            html2Render+=" </tr>\n";
+        }
+
+
+        html2Render+="</table>\n";
+
+
+
+
+        viewElements.minesweeperField.innerHTML=html2Render;
+    }
+
+
+    /**
+     * Gets the text that may be displayed inside a HTML element representing 1 tile
+     * Now public as it is called from the template
+     * @param tile - the Tile object the text is extracted from
+     * @return the text that may be displayed inside a HTML element representing the Tile tile
+     */
+    function getTileText(tile){
+        switch (tile.state){
+            case "CLOSED":
+                return "-";
+            case "MARKED":
+                return "M";
+            case OPEN:
+                if (tile.value!=undefined) {
+                    return ""+tile.value;
+                } else {
+                    return "X";
+                }
+            default:
+                return "?";
+        }
+    }
+
+    /**
+     * Gets the HTML class of the <code>td</code> element representing the tile
+     * Now public as it is called from the template
+     * @param tile the Tile object the class is assigned to
+     * @return String with the HTML class of the <code>td</code> element representing the Tile tile
+     */
+    function getTileClass(tile) {
+        switch (tile.state) {
+            case "CLOSED":
+                return "closed";
+            case "MARKED":
+                return "marked";
+            case "OPEN":
+                if (tile.value != undefined) {
+                    return "open" + tile.value;
+                } else {
+                    return "mine";
+                }
+            default:
+                return "unknown";
+        }
+    }
 
     </script>
 

@@ -70,9 +70,8 @@ public class MinesweeperController {
     }
 
     @RequestMapping("/asynch")
-    public String loadInAsynchMode(Model model){
+    public String loadInAsynchMode(){
         startOrUpdateGame(null,null);
-        prepareModel(model);
         return "minesweeperAsynch";
     }
 
@@ -251,12 +250,7 @@ public class MinesweeperController {
         }
     }
 
-    /**
-     * Fills the Spring MVC model object for the Thymeleaf template
-     * @param model - the Spring MVC model
-     */
-    private void prepareModel(Model model){
-
+    private String getGameStatusMessage(){
         String gameStatus="";
         if(this.field.getState()== GameState.FAILED){
             gameStatus="Prehral si";
@@ -270,10 +264,19 @@ public class MinesweeperController {
                 gameStatus+="otváraš";
             }
         }
+        return gameStatus;
+    }
+
+
+    /**
+     * Fills the Spring MVC model object for the Thymeleaf template
+     * @param model - the Spring MVC model
+     */
+    private void prepareModel(Model model){
 
         model.addAttribute("isPlaying",this.isPlaying);
         model.addAttribute("marking",this.marking);
-        model.addAttribute("gameStatus",gameStatus);
+        model.addAttribute("gameStatus",getGameStatusMessage());
         model.addAttribute("minesweeperField",this.field.getTiles());
         model.addAttribute("bestScores",scoreService.getBestScores("minesweeper"));    }
 }
